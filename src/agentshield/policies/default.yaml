@@ -1,0 +1,74 @@
+# AgentShield default policy.
+# Thresholds are applied to the combined injection risk score (0..1) per trust level.
+version: 1
+
+thresholds:
+  system:    { review: 0.97, block: 0.99 }
+  trusted:   { review: 0.85, block: 0.95 }
+  user:      { review: 0.60, block: 0.80 }
+  untrusted: { review: 0.45, block: 0.60 }
+
+# The ML classifier is weaker than the rules on novel phrasing; its score is scaled before
+# being combined so it can raise, but rarely single-handedly block, benign-looking input.
+ml_weight: 0.85
+
+# Data-egress allowlist: any URL or e-mail address in a tool argument (or link in model
+# output) must belong to one of these domains (subdomains included).
+egress:
+  allowed_domains:
+    - acme-corp.com
+    - acme-corp.eu
+    - wikipedia.org
+    - python.org
+
+# Role-based tool permissions. "*" means every registered tool.
+roles:
+  viewer:  { tools: [search_kb] }
+  analyst: { tools: [search_kb, http_get, send_email, create_ticket] }
+  support: { tools: [search_kb, send_email, create_ticket, transfer_funds] }
+  admin:   { tools: ["*"] }
+
+# Per-tool risk level and argument constraints.
+tools:
+  search_kb:
+    risk: low
+    args:
+      query: { max_length: 500 }
+  http_get:
+    risk: low
+    args:
+      url: { egress: url }
+  send_email:
+    risk: medium
+    args:
+      to: { egress: email }
+      body: { max_length: 8000 }
+  create_ticket:
+    risk: low
+    args:
+      title: { max_length: 200 }
+  delete_record:
+    risk: high
+    require_approval: true
+    args:
+      record_id: { pattern: '^\d{1,9}$' }   # no wildcards
+  transfer_funds:
+    risk: critical
+    require_approval: true
+    args:
+      amount: { max: 1000 }
+      to_account: { pattern: '^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$' }
+  run_shell:
+    risk: critical
+    require_approval: true
+    args:
+      cmd: { deny_patterns: ['rm\s+-rf', 'curl', 'wget', '\|\s*(ba)?sh', 'chmod', '/etc/', 'sudo'] }
+
+# Taint tracking: once untrusted content scoring above `min_taint` has entered the context,
+# tool calls at or above `risk_at_or_above` need human approval.
+taint:
+  min_taint: 0.3
+  risk_at_or_above: medium
+
+# Unknown tools are denied (fail closed).
+default_tool_action: deny
