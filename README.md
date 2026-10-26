@@ -5,7 +5,7 @@ blocks direct and indirect prompt injection, data exfiltration and unsafe tool u
 
 ![python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![license](https://img.shields.io/badge/license-MIT-green)
-![CI](https://img.shields.io/badge/CI-ruff%20%2B%20pytest-success)
+[![CI](https://github.com/Navyagowda2714/agentshield-llm-guardrails/actions/workflows/ci.yml/badge.svg)](https://github.com/Navyagowda2714/agentshield-llm-guardrails/actions/workflows/ci.yml)
 ![ruff](https://img.shields.io/badge/lint-ruff-261230?logo=ruff&logoColor=white)
 ![tests](https://img.shields.io/badge/tests-67%20passing-brightgreen)
 
@@ -100,6 +100,8 @@ design, sequence and state diagrams.
 ## Quickstart
 
 ```bash
+git clone https://github.com/Navyagowda2714/agentshield-llm-guardrails && cd agentshield-llm-guardrails
+
 # install (Python 3.10+)
 pip install -e ".[dev]"          # or: make dev
 
